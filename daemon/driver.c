@@ -10,6 +10,7 @@
 #include <sys/types.h>
 #include "utils.h"
 #include "dirtree.h"
+#include "hal_socket.h"
 
 #define FUSE_USE_VERSION 26
 #include <fuse.h>
@@ -20,6 +21,14 @@ HAL arduino;
 DirTree *halfs_root = NULL;
 
 const char *STATE_NAMES[] = {"STANDBY", "POWERED", "SHOWTIME", "ALERT"};
+
+pthread_t hal_accept_thread;
+
+struct accept_loop_args_struct simone = {
+    .n_FDs = 0,
+    .sock_path = "/tmp/test.sock"
+};
+
 
 typedef struct halfs_file {
    char * name;
@@ -232,11 +241,11 @@ halfs_file all_paths[] = {
         .read_callback = state_read,
         .size_callback = state_size
     },
-    /* Symlink test */
+    /* Event stream */
     {
-        .name = "/demo-symlink",
+        .name = "/events_stream",
         .mode = 0444,
-        .target = "../driver.c"
+        .target = "/tmp/hal-event-stream.sock"
     },
 
     /* Analog sensors: [0, 1023] */
@@ -363,7 +372,13 @@ void * halfs_init(struct fuse_conn_info *conn)
         file->payload = (void*) &(all_paths[i]);
     }
 
+    pthread_create(&hal_accept_thread, NULL, accept_loop, (void *) &simone);
+
     return NULL;
+}
+
+void halfs_destroy(void * _){
+    unlink(simone.sock_path);
 }
 
 static int halfs_open(const char *path, struct fuse_file_info *fi)
@@ -387,7 +402,8 @@ static int halfs_read(const char *path, char *buf, size_t size, off_t offset,
 
 
 static int halfs_write(const char *path, const char *buf, size_t size, off_t offset,
-        struct fuse_file_info *fi) {
+        struct fuse_file_info *fi)
+{
 
     DirTree *file = DirTree_find(halfs_root, path);
     if (file){
@@ -398,7 +414,8 @@ static int halfs_write(const char *path, const char *buf, size_t size, off_t off
 }
 
 static int halfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
-        off_t offset, struct fuse_file_info *fi) {
+        off_t offset, struct fuse_file_info *fi)
+{
 
     DirTree *dir = DirTree_find(halfs_root, path);
     if (! dir)
@@ -432,8 +449,9 @@ static struct fuse_operations hal_ops = {
     .read       = halfs_read,
     .write      = halfs_write,
     .truncate   = halfs_trunc,
+    .readlink   = halfs_readlink,
     .init       = halfs_init,
-    .readlink   = halfs_readlink
+    .destroy    = halfs_destroy
 };
 
 int main(int argc, char *argv[])

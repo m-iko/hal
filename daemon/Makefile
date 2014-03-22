@@ -5,7 +5,7 @@ LDFLAGS = -lpthread
 test: test.o arduino-serial-lib.o Ambianceduino.o
 	${CC} ${LDFLAGS} -o $@ $^
 
-driver: driver.o arduino-serial-lib.o Ambianceduino.o dirtree.o
+driver: driver.o arduino-serial-lib.o Ambianceduino.o dirtree.o hal_socket.o
 	${CC} ${LDFLAGS} `pkg-config --libs fuse` -o $@ $^
 
 driver.o: driver.c
