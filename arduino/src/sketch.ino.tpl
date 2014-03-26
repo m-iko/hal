@@ -58,10 +58,11 @@ Trigger radiator_trigger(RADIATOR_PIN, HIGH, 10000, "radiator", 20);
 
 Ledstrip ledstrip_r(LEDS_R_PIN);
 Ledstrip ledstrip_g(LEDS_G_PIN);
+Ledstrip ledstrip_b(LEDS_B_PIN);
 Ledstrip ledstrip_ringtone(LEDS_R_PIN);
 
 #define N_LEDSTRIPS sizeof(ledstrips)/sizeof(void*)
-Ledstrip *ledstrips[] = {&ledstrip_r, &ledstrip_ringtone};
+Ledstrip *ledstrips[] = {&ledstrip_r, &ledstrip_ringtone, &ledstrip_b};
 
 /* ==== Subroutines ==== */
 void setup_STANDBY()
@@ -119,6 +120,7 @@ void loop_SHOWTIME()
         state = ALERT;
     } else {
         ledstrip_r.play(now);
+        ledstrip_b.play(now);
         if (passage_trigger.isActive())
             ledstrip_g.play(now);
         else

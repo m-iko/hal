@@ -166,8 +166,12 @@ int anim_curve_write(const char *file, const char *buffer, size_t size, off_t of
             HAL_uploadAnim(&arduino, 0, len, (unsigned char*) buffer+offset);
             return len;
         }
-        else if (streq(parentdir->name, "B")){
+        else if (streq(parentdir->name, "bell")){
             HAL_uploadAnim(&arduino, 1, len, (unsigned char*) buffer+offset);
+            return len;
+        }
+        else if (streq(parentdir->name, "B")){
+            HAL_uploadAnim(&arduino, 2, len, (unsigned char*) buffer+offset);
             return len;
         }
     }
@@ -187,8 +191,12 @@ int anim_fps_write(const char *file, const char *buffer, size_t size, off_t offs
                 HAL_setFPSAnim(&arduino, 0, fps);
                 return size;
             }
-            else if (streq(parentdir->name, "B")){
+            else if (streq(parentdir->name, "bell")){
                 HAL_setFPSAnim(&arduino, 1, fps);
+                return size;
+            }
+            else if (streq(parentdir->name, "B")){
+                HAL_setFPSAnim(&arduino, 2, fps);
                 return size;
             }
         }
@@ -203,8 +211,13 @@ int anim_reset_write(const char *file, const char *buffer, size_t size, off_t of
         if (streq(parentdir->name, "R")){
             HAL_resetAnim(&arduino, 0);
             return size;
-        } else if (streq(parentdir->name, "B")){
+        } 
+        else if (streq(parentdir->name, "bell")){
             HAL_resetAnim(&arduino, 1);
+            return size;
+        }
+        else if (streq(parentdir->name, "B")){
+            HAL_resetAnim(&arduino, 2);
             return size;
         }
     }
@@ -304,6 +317,9 @@ halfs_file all_paths[] = {
     {.name="/leds/R/curve", .mode=0222, .write_callback=anim_curve_write},
     {.name="/leds/R/fps"  , .mode=0222, .write_callback=anim_fps_write},
     {.name="/leds/R/reset", .mode=0222, .write_callback=anim_reset_write},
+    {.name="/leds/bell/curve", .mode=0222, .write_callback=anim_curve_write},
+    {.name="/leds/bell/fps"  , .mode=0222, .write_callback=anim_fps_write},
+    {.name="/leds/bell/reset", .mode=0222, .write_callback=anim_reset_write},
     {.name="/leds/B/curve", .mode=0222, .write_callback=anim_curve_write},
     {.name="/leds/B/fps"  , .mode=0222, .write_callback=anim_fps_write},
     {.name="/leds/B/reset", .mode=0222, .write_callback=anim_reset_write},
